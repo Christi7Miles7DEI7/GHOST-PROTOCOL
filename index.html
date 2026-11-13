@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070d16">
+  <meta name="description" content="GHOST PROTOCOL, jeu de simulation de cybersécurité jouable dans le navigateur, hors ligne.">
+  <title>GHOST PROTOCOL — Cyber Operations</title>
+  <style>
+    :root{color-scheme:dark;--bg:#070d16;--panel:#0c1725;--panel2:#111f30;--line:#21364c;--muted:#8ba1b5;--text:#e3f0fa;--green:#74f7bb;--cyan:#6bd7ff;--orange:#ffc47d;--red:#ff6f85;--mono:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;--sans:Inter,system-ui,-apple-system,'Segoe UI',sans-serif}
+    *{box-sizing:border-box}
+    html,body{min-height:100%;margin:0}
+    body{background:radial-gradient(ellipse 70% 60% at 50% -25%,#17405778,transparent 80%),var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55}
+    body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(#b8e9ff07 1px,transparent 1px),linear-gradient(90deg,#b8e9ff07 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(to bottom,#000a,transparent 95%)}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+    .shell{max-width:1650px;margin:auto;padding:17px 22px 24px}
+    .top{display:flex;gap:18px;align-items:center;justify-content:space-between;padding:4px 0 17px;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:13px;min-width:250px}
+    .brand-logo{height:43px;width:43px;display:grid;place-items:center;clip-path:polygon(27% 0,74% 0,100% 27%,100% 73%,74% 100%,27% 100%,0 73%,0 27%);background:linear-gradient(140deg,#74f7bb,#36acc7);color:#061a20;font:900 27px var(--mono);box-shadow:0 0 30px #74f7bb35}
+    .brand-name{font-weight:850;letter-spacing:2.2px;font-size:17px;line-height:1.1}
+    .brand-sub{font:11px var(--mono);letter-spacing:2.3px;color:var(--muted);margin-top:5px}
+    .status-pill{display:flex;gap:9px;align-items:center;border:1px solid #285b56;background:#11363067;color:var(--green);border-radius:99px;padding:8px 12px;font:11px var(--mono);letter-spacing:.8px}
+    .pulse{height:7px;width:7px;background:var(--green);border-radius:50%;box-shadow:0 0 13px var(--green)}
+    .top-right{display:flex;align-items:center;gap:14px}
+    .clock{font:12px var(--mono);color:var(--muted)}
+    .layout{display:grid;grid-template-columns:270px minmax(380px,1fr) 305px;gap:17px;margin-top:17px;align-items:stretch}
+    .panel{border:1px solid var(--line);background:linear-gradient(145deg,#111e2cdd,#091422ed);box-shadow:0 15px 45px #00000025;border-radius:13px;overflow:hidden}
+    .sidebar,.intel{min-width:0}
+    .side-inner{padding:20px}
+    .eyebrow{font:11px var(--mono);letter-spacing:1.9px;color:var(--muted);text-transform:uppercase}
+    .side-title{font-size:12px;font-weight:750;letter-spacing:1.5px;color:#d8ebf8;margin-bottom:13px}
+    .agent{padding:17px;background:linear-gradient(145deg,#12302f,#13293a);border:1px solid #2c635a;border-radius:10px;margin-bottom:24px}
+    .agent-row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+    .agent-name{font:700 22px var(--mono);letter-spacing:1px;margin:7px 0}
+    .agent-rank{font:11px var(--mono);color:var(--green)}
+    .agent-xp{font:11px var(--mono);color:var(--muted);margin-top:12px}
+    .meter{height:6px;background:#263e4d;overflow:hidden;border-radius:20px;margin-top:8px}
+    .meter>span{display:block;height:100%;background:linear-gradient(90deg,#23a4b0,var(--green));width:0;transition:width .3s}
+    .mission-nav{display:grid;gap:9px}
+    .mission-item{border:1px solid var(--line);text-align:left;color:var(--text);background:#102032a0;width:100%;border-radius:9px;padding:12px;display:flex;gap:12px;align-items:flex-start;transition:border .2s,background .2s}
+    .mission-item:hover:not(:disabled){border-color:#488b9b;background:#163047}
+    .mission-item.active{border-color:#4cbfa5;background:#15352f}
+    .mission-item:disabled{opacity:.43;cursor:not-allowed}
+    .mission-icon{font:12px var(--mono);border:1px solid #396076;width:29px;height:29px;display:grid;place-items:center;border-radius:7px;flex:none}
+    .mission-item.active .mission-icon{color:var(--green);border-color:#3b8f77}
+    .mission-item.done .mission-icon{color:var(--green)}
+    .mission-label{font-weight:700;font-size:12px;line-height:1.5}
+    .mission-meta{color:var(--muted);font:10px var(--mono);margin-top:4px}
+    .side-note{font-size:11px;color:var(--muted);margin:22px 0 16px;line-height:1.65}
+    .side-footer{display:flex;gap:8px;flex-wrap:wrap}
+    .text-btn{border:1px solid var(--line);border-radius:7px;background:#16283a;color:#bcd3e4;padding:8px 11px;font:11px var(--mono)}
+    .text-btn:hover{border-color:#4b8a9d;color:white}
+    .core{min-width:0;display:flex;flex-direction:column;gap:16px}
+    .hero{padding:20px 23px 19px;position:relative;overflow:hidden;min-height:160px}
+    .hero:after{content:'G';position:absolute;right:23px;top:-74px;font:900 260px var(--mono);color:#49d0a709;pointer-events:none}
+    .hero .label{color:var(--green);font:11px var(--mono);letter-spacing:2px}
+    .hero h1{font-size:clamp(24px,3vw,37px);letter-spacing:1px;line-height:1.17;margin:9px 0 8px;font-weight:850}
+    .hero p{margin:0;max-width:690px;color:#aabecd;font-size:13px}
+    .hero-bottom{margin-top:17px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .chip{padding:5px 9px;border:1px solid #2d5364;background:#102637;border-radius:5px;color:#a9d8e9;font:10px var(--mono);letter-spacing:.4px}
+    .chip.green{border-color:#367c6b;color:var(--green)}
+    .terminal{min-height:520px;display:flex;flex-direction:column;flex:1}
+    .terminal-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 16px;background:#0f1b2a;gap:8px}
+    .dots{display:flex;gap:6px}.dot{height:9px;width:9px;border-radius:50%;background:#f77d7c}.dot:nth-child(2){background:#e1c76e}.dot:nth-child(3){background:#6ada9c}
+    .terminal-caption{font:11px var(--mono);color:#9dbbc9;margin-left:9px}
+    .terminal-head .left{display:flex;align-items:center}
+    .terminal-caption.right{color:#598192}
+    .terminal-output{flex:1;min-height:380px;max-height:560px;overflow-y:auto;padding:20px 21px 15px;background:linear-gradient(165deg,#06121b,#091723);font:12px/1.8 var(--mono);scrollbar-color:#295266 transparent;scrollbar-width:thin}
+    .line{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:5px;color:#a8cad3}
+    .line.cmd{color:#f2fafc;margin-top:13px}
+    .line.cmd:before{content:'❯ ';color:var(--green)}
+    .line.good{color:var(--green)}.line.warn{color:var(--orange)}.line.error{color:var(--red)}.line.info{color:var(--cyan)}.line.dim{color:#688a9d}.line.reward{color:#f3d995;font-weight:700}
+    .terminal-inputrow{border-top:1px solid #1e3d4a;background:#081924;display:flex;align-items:center;padding:14px 17px;gap:11px}
+    .prompt{color:var(--green);font:12px var(--mono);white-space:nowrap}
+    .terminal-inputrow input{min-width:0;flex:1;background:transparent;border:0;outline:0;color:#f0fcff;font:13px var(--mono);caret-color:var(--green)}
+    .terminal-inputrow input:focus-visible{outline:none}
+    .run{font:10px var(--mono);letter-spacing:1px;background:var(--green);color:#09221d;border:0;border-radius:5px;padding:10px 13px;font-weight:800}
+    .run:hover{background:#b1ffdb}
+    .shortcuts{display:flex;gap:8px;flex-wrap:wrap;padding:14px 19px;background:#101d2d;border-top:1px solid var(--line);align-items:center}
+    .shortcuts span{font:10px var(--mono);color:var(--muted);margin-right:5px}
+    .quick{background:#142838;border:1px solid #2d4b60;color:#bdd9e3;border-radius:6px;padding:6px 10px;font:11px var(--mono)}.quick:hover{color:var(--green);border-color:#3c9f84}
+    .intel .heading{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:13px}
+    .scan-tag{font:10px var(--mono);color:var(--muted)}
+    .network{background:#071622;border:1px solid #214156;min-height:164px;border-radius:8px;position:relative;overflow:hidden;display:flex;justify-content:center;align-items:center;margin:10px 0 18px}
+    .network:before{content:"";position:absolute;inset:0;background:radial-gradient(#5ab5d112 1px,transparent 1px);background-size:14px 14px}
+    .network svg{max-width:100%;height:155px;position:relative}
+    .node-text{font:10px var(--mono);fill:#8aa8b7}.node-name{font:10px var(--mono);fill:#d7f6ff}
+    .objective{border-left:2px solid var(--green);padding-left:11px;color:#c7dce6;font-size:12px;line-height:1.65;margin:10px 0 18px}
+    .trace-row{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font:11px var(--mono);margin-top:17px}
+    .trace-meter{height:8px;background:#213543;border-radius:99px;overflow:hidden;margin:9px 0 6px}
+    .trace-fill{height:100%;width:0;background:linear-gradient(90deg,#68e3b0,#e4c26f,#ec6f79);transition:width .3s}
+    .trace-desc{color:var(--muted);font-size:11px;line-height:1.55}
+    .task-list{display:grid;gap:10px;margin:14px 0 20px}
+    .task{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#a8bdcc;line-height:1.5}
+    .task-check{display:grid;place-items:center;width:17px;height:17px;border:1px solid #3c5866;border-radius:4px;color:transparent;flex:none;font:11px var(--mono)}
+    .task.done{color:#d1eee1}.task.done .task-check{border-color:#48ac89;color:#68eab0;background:#143e30}
+    .reward{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
+    .reward-cell{padding:12px 10px;background:#0d2431;border:1px solid #254253;border-radius:8px}
+    .reward-cell small{font:10px var(--mono);color:var(--muted);display:block}
+    .reward-cell b{font:700 18px var(--mono);color:var(--green);display:block;margin-top:4px}
+    .cta{margin-top:16px;background:linear-gradient(100deg,#46dab2,#87ecc3);border:none;border-radius:7px;font-weight:800;font-size:12px;color:#08221c;padding:11px;width:100%}
+    .cta:disabled{cursor:default;opacity:.7}
+    .guide{margin-top:18px;border-top:1px solid var(--line);padding-top:18px}
+    .guide code{font:11px var(--mono);color:#d7f1f5}
+    .guide p{font-size:11px;color:var(--muted);line-height:1.65;margin:7px 0}
+    .footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#6e91a3;font:10px var(--mono);padding:17px 4px 0}
+    .visually-hidden{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .modal-cover{position:fixed;inset:0;z-index:20;background:#020b11c4;display:grid;place-items:center;padding:15px;backdrop-filter:blur(9px)}
+    .modal{width:min(475px,100%);background:linear-gradient(165deg,#132d38,#081723);border:1px solid #3c756b;border-radius:15px;padding:32px;box-shadow:0 30px 90px #000b}
+    .modal h2{font-size:30px;margin:6px 0}.modal p{color:#b2d2db;line-height:1.7}
+    .modal .symbol{font:900 45px var(--mono);color:var(--green)}
+    .modal .cta{font-size:13px;padding:14px}
+    @media(max-width:1290px){.layout{grid-template-columns:225px minmax(300px,1fr) 265px;gap:11px}.shell{padding:13px}.side-inner{padding:15px}.hero{padding:18px}.terminal-output{padding:17px}.brand{min-width:auto}}
+    @media(max-width:1030px){.layout{grid-template-columns:220px minmax(0,1fr)}.intel{grid-column:1/-1}.intel .side-inner{display:grid;grid-template-columns:1fr 1fr;column-gap:25px}.intel .heading,.intel .network,.intel #intelText,.intel #traceBlock{grid-column:1}.intel .objectives-block,.intel .guide,.intel #nextButton{grid-column:2}.intel .network{margin:4px 0 10px}.intel .objective{margin:0}}
+    @media(max-width:710px){.shell{padding:12px}.top{align-items:flex-start}.brand-name{font-size:14px}.brand-logo{width:37px;height:37px}.top-right{gap:7px}.clock{display:none}.status-pill{font-size:9px}.layout{display:flex;flex-direction:column}.sidebar .side-inner{padding:12px}.sidebar .agent{margin-bottom:11px}.sidebar .mission-nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.mission-item{padding:9px;display:block}.mission-item .mission-icon{margin-bottom:6px}.mission-label{font-size:10px}.mission-meta{font-size:9px}.sidebar .side-title,.sidebar .side-note{display:none}.side-footer{margin-top:10px}.intel .side-inner{display:block}.hero h1{font-size:26px}.terminal{min-height:500px}.terminal-output{min-height:325px;max-height:490px}.terminal-inputrow{padding:11px}.terminal-inputrow input{font-size:12px}.terminal-caption.right{display:none}.footer{font-size:9px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><div class="brand-logo" aria-hidden="true">G</div><div><div class="brand-name">GHOST PROTOCOL</div><div class="brand-sub">CYBER OPERATIONS // v0.1</div></div></div>
+    <div class="top-right"><span class="clock" id="clock">--:--:-- UTC</span><span class="status-pill"><span class="pulse"></span> SANDBOX ISOLÉE</span></div>
+  </header>
+  <div class="layout">
+    <aside class="panel sidebar" aria-label="Profil et missions"><div class="side-inner">
+      <div class="agent">
+        <div class="agent-row"><span class="eyebrow">OPÉRATEUR</span><span style="color:var(--green);font:10px var(--mono)">● EN LIGNE</span></div>
+        <div class="agent-name">GHOST_01</div>
+        <div id="rank" class="agent-rank">RECRUE — NIV. 01</div>
+        <div class="agent-xp"><span id="xp">0</span> XP • <span id="credits">0</span> ₡</div>
+        <div class="meter" title="Progression vers le prochain rang"><span id="xpBar"></span></div>
+      </div>
+      <div class="side-title">OPÉRATIONS DISPONIBLES</div>
+      <nav id="missionsList" class="mission-nav" aria-label="Liste des missions"></nav>
+      <p class="side-note">Simulateur fermé. Tous les serveurs, identifiants et journaux sont fictifs. Aucune requête réseau réelle n'est envoyée.</p>
+      <div class="side-footer"><button class="text-btn" id="helpButton" type="button">? COMMANDES</button><button class="text-btn" id="resetButton" type="button">↺ RECOMMENCER</button></div>
+    </div></aside>
+    <main class="core">
+      <section class="panel hero" aria-labelledby="missionTitle"><div class="label" id="missionCode">// OPÉRATION 01</div><h1 id="missionTitle">FIRST CONTACT</h1><p id="missionBrief"></p><div class="hero-bottom"><span class="chip green" id="targetBadge">CIBLE : 10.14.0.10</span><span class="chip" id="difficultyBadge">DIFFICULTÉ : 01/03</span><span class="chip" id="scenarioBadge">AUDIT AUTORISÉ</span></div></section>
+      <section class="panel terminal" aria-label="Terminal de simulation">
+        <div class="terminal-head"><div class="left"><div class="dots" aria-hidden="true"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><span class="terminal-caption">ghost-shell — /opt/operations</span></div><span class="terminal-caption right" id="connectionIndicator">SESSION LOCALE</span></div>
+        <div class="terminal-output" id="output" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <form id="terminalForm" class="terminal-inputrow"><label class="prompt" id="prompt" for="commandInput">ghost@local:~$</label><input id="commandInput" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Saisir une commande"><button class="run" type="submit">EXÉCUTER ↵</button></form>
+        <div class="shortcuts"><span>RACCOURCIS</span><button type="button" class="quick" data-command="help">help</button><button type="button" class="quick" data-command="brief">brief</button><button type="button" class="quick" data-command="scan">scan cible</button><button type="button" class="quick" data-command="status">status</button><button type="button" class="quick" data-command="hint">hint</button></div>
+      </section>
+    </main>
+    <aside class="panel intel" aria-label="Informations opérationnelles"><div class="side-inner">
+      <div class="heading"><span class="side-title" style="margin:0">CARTE RÉSEAU</span><span class="scan-tag" id="networkStatus">NON CARTOGRAPHIÉ</span></div>
+      <div class="network"><svg viewBox="0 0 280 155" role="img" aria-label="Schéma d'un poste local et du serveur de la mission"><defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M 70 75 L 210 75" fill="none" stroke="#326778" stroke-width="2" stroke-dasharray="5 6"/><circle cx="70" cy="75" r="18" fill="#0a262d" stroke="#60d3b2" stroke-width="2" filter="url(#glow)"/><path d="M60 69h20v13H60zM64 86h12" stroke="#60d3b2" stroke-width="1.5" fill="none"/><circle id="targetNode" cx="210" cy="75" r="18" fill="#0e2431" stroke="#648598" stroke-width="2"/><path id="targetNodeIcon" d="M201 68h18v15h-18zM201 73h18M206 78h3" stroke="#7f9cad" stroke-width="1.5" fill="none"/><text x="70" y="115" text-anchor="middle" class="node-name">GHOST_01</text><text x="70" y="129" text-anchor="middle" class="node-text">LOCAL</text><text id="nodeName" x="210" y="115" text-anchor="middle" class="node-name">HELIOS</text><text id="nodeIp" x="210" y="129" text-anchor="middle" class="node-text">10.14.0.10</text></svg></div>
+      <div id="intelText" class="objective"></div>
+      <div id="traceBlock"><div class="trace-row"><span>JAUGE DE DÉTECTION</span><span id="traceValue">00 / 100</span></div><div class="trace-meter"><div id="traceFill" class="trace-fill"></div></div><div class="trace-desc" id="traceDesc">Aucune anomalie détectée. Évitez les actions inutiles.</div></div>
+      <div class="objectives-block"><div class="side-title" style="margin-top:22px">OBJECTIFS DE MISSION</div><div id="tasks" class="task-list"></div><div class="reward"><div class="reward-cell"><small>GAIN EN XP</small><b id="rewardXp">+250</b></div><div class="reward-cell"><small>CRÉDITS</small><b id="rewardCredits">+900 ₡</b></div></div></div>
+      <button class="cta" id="nextButton" type="button" hidden>MISSION SUIVANTE →</button>
+      <div class="guide"><div class="side-title">AIDE RAPIDE</div><p><code>help</code> affiche toutes les commandes.</p><p><code>nmap &lt;IP&gt;</code> cartographie le serveur fictif.</p><p><code>hint</code> suggère la prochaine action.</p><p>Utilise <strong>↑ / ↓</strong> pour retrouver tes commandes.</p></div>
+    </div></aside>
+  </div>
+  <footer class="footer"><span>GHOST PROTOCOL v0.1 • SIMULATION HORS LIGNE • AUCUNE CONNEXION À DES MACHINES RÉELLES</span><span>SAUVEGARDE LOCALE AUTOMATIQUE • © PROTOTYPE</span></footer>
+</div>
+<div id="modalRoot"></div>
+<script>
+(()=>{
+'use strict';
+const M=[
+ {id:'M01',name:'FIRST CONTACT',tag:'Audit initial',target:'10.14.0.10',node:'HELIOS',brief:'Une passerelle de laboratoire expose peut-être des informations internes. Explore les services autorisés, retrouve une preuve d’audit et dépose-la au centre de contrôle.',goal:'Cartographier HELIOS, identifier une exposition Web, puis récupérer et transmettre la preuve d’audit.',xp:250,credits:900,steps:['Identifier les services de la cible','Découvrir le chemin d’archive exposé','Accéder au serveur avec le compte d’audit','Lire la preuve et la soumettre'],flag:'GP{HELIOS-AUDIT-07}',login:'analyst',password:'orbit-1999',ports:'22/tcp  open  ssh     GhostSSH 2.0\n80/tcp  open  http    nginx/simulated',files:{'readme.txt':'Bienvenue sur HELIOS. Vérifiez les artefacts d’audit avant clôture.','proof.txt':'AUDIT_ARTIFACT=GP{HELIOS-AUDIT-07}\nCriticité: moyenne\nConstat: informations sensibles exposées dans une archive Web.'}},
+ {id:'M02',name:'GHOST TRACE',tag:'Investigation',target:'10.14.0.24',node:'SPECTER',brief:'Une équipe de réponse à incident signale un accès suspect. Examine les journaux d’authentification et identifie l’adresse source responsable.',goal:'Relier les connexions suspectes dans auth.log à une même adresse source, puis soumettre ton rapport.',xp:450,credits:1400,steps:['Cartographier le serveur de journaux','Découvrir l’accès diagnostic','Consulter les journaux du serveur','Identifier et rapporter la source suspecte'],flag:'203.0.113.77',login:'observer',password:'northwind-8',ports:'22/tcp    open  ssh       GhostSSH 2.0\n8080/tcp  open  http-proxy  Specter/status',files:{'readme.txt':'Dossier de réponse à incident IR-204. Analysez auth.log. Adresses publiques réservées à la documentation.','auth.log':'2026-11-12T02:14:03Z INFO ssh login ok     user=backup  src=192.0.2.18\n2026-11-12T02:14:14Z WARN ssh login failed user=root    src=203.0.113.77\n2026-11-12T02:14:18Z WARN ssh login failed user=admin   src=203.0.113.77\n2026-11-12T02:14:35Z WARN ssh login failed user=service src=203.0.113.77\n2026-11-12T02:16:19Z ALERT ssh login ok   user=service src=203.0.113.77\n2026-11-12T02:17:11Z INFO ssh login ok    user=backup  src=192.0.2.18\n2026-11-12T02:19:51Z INFO ssh logout      user=service src=203.0.113.77','inventory.txt':'192.0.2.18 = agent de sauvegarde autorisé\n203.0.113.77 = non répertorié dans la liste de confiance'}},
+ {id:'M03',name:'ZERO TRUST',tag:'Durcissement',target:'10.14.0.55',node:'BASTION',brief:'Le bastion d’administration accepte des connexions SSH depuis des sources non autorisées. Analyse la règle de filtrage et corrige la configuration simulée.',goal:'Détecter une règle SSH trop permissive, la restreindre au réseau de gestion et vérifier la correction.',xp:650,credits:2100,steps:['Cartographier le bastion','Identifier le compte de maintenance','Lire la politique et le pare-feu','Appliquer puis vérifier le durcissement'],flag:'verified',login:'operator',password:'perimeter-6',ports:'22/tcp  open  ssh    GhostSSH 3.1\n443/tcp open  https  Bastion Control',files:{'readme.txt':'BASTION — configuration de simulation. La fenêtre de maintenance est ouverte.','change-request.txt':'CHG-1103 : SSH doit être accessible uniquement depuis 10.14.0.0/24. Interdire le trafic entrant SSH depuis tout autre réseau.'}}
+];
+const RANKS=[{xp:0,name:'RECRUE',level:'01'},{xp:250,name:'OPÉRATEUR',level:'02'},{xp:700,name:'ANALYSTE',level:'03'},{xp:1350,name:'GHOST ELITE',level:'04'}];
+const $=id=>document.getElementById(id), storeKey='ghost_protocol_v01_save';
+function newSession(){return {scanned:false,visited:[],clue:false,connected:false,filesRead:[],patched:false,trace:0,hints:0,failedAuth:0,completed:false};}
+function defaults(){return {completed:[],index:0,xp:0,credits:0,failures:0,session:newSession()};}
+let state=defaults(), pendingPassword=null, history=[], historyCursor=0;
+try{let s=JSON.parse(localStorage.getItem(storeKey)||'null');if(s&&Array.isArray(s.completed)&&Number.isInteger(s.index)&&s.index>=0&&s.index<M.length){state={...defaults(),...s,session:{...newSession(),...(s.session||{})}};if(!Array.isArray(state.session.visited))state.session.visited=[];if(!Array.isArray(state.session.filesRead))state.session.filesRead=[];}}catch(e){}
+const current=()=>M[state.index], S=()=>state.session;
+function save(){try{localStorage.setItem(storeKey,JSON.stringify(state));}catch(e){}}
+function emit(message='',type='normal'){const el=document.createElement('div');el.className='line '+type;el.textContent=message;$('output').appendChild(el);while($('output').children.length>230)$('output').firstChild.remove();$('output').scrollTop=$('output').scrollHeight;}
+function banner(){emit('  ██████╗ ██╗  ██╗ ██████╗ ███████╗████████╗','good');emit(' ██╔════╝ ██║  ██║██╔═══██╗██╔════╝╚══██╔══╝','good');emit(' ██║  ███╗███████║██║   ██║███████╗   ██║   ','good');emit(' ██║   ██║██╔══██║██║   ██║╚════██║   ██║   ','good');emit(' ╚██████╔╝██║  ██║╚██████╔╝███████║   ██║   ','good');emit('  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ','good');emit('GHOST OS 0.1  |  CYBER RANGE LOCAL  |  AUCUN RÉSEAU RÉEL','dim');emit('────────────────────────────────────────────────────','dim');}
+function intro(resumed=false){banner();emit(resumed?'[SAUVEGARDE] Session locale restaurée.':'[SYSTÈME] Console de simulation initialisée.','good');emit(`[DOSSIER] ${current().id} — ${current().name}`,'info');emit(`Cible autorisée : ${current().target}. Tape « brief » pour le contexte.`);emit('Première action conseillée : nmap '+current().target,'warn');emit('Tape « help » pour consulter les commandes disponibles.','dim');}
+function rankInfo(){let r=RANKS[0],next=null;for(let i=0;i<RANKS.length;i++){if(state.xp>=RANKS[i].xp)r=RANKS[i];else {next=RANKS[i];break;}}return {r,next};}
+function checkSteps(){const s=S(),m=current();if(state.completed.includes(m.id))return [true,true,true,true];if(state.index===0)return [s.scanned,s.visited.includes('/robots.txt'),s.connected,s.filesRead.includes('proof.txt')];if(state.index===1)return [s.scanned,s.visited.includes('/diagnostics'),s.connected,s.filesRead.includes('auth.log')];return [s.scanned,s.visited.includes('/maintenance'),s.filesRead.includes('firewall.conf')&&s.filesRead.includes('change-request.txt'),s.patched];}
+function update(){const m=current(),s=S(),ri=rankInfo();$('rank').textContent=ri.r.name+' — NIV. '+ri.r.level;$('xp').textContent=state.xp.toLocaleString('fr-FR');$('credits').textContent=state.credits.toLocaleString('fr-FR');$('xpBar').style.width=ri.next?Math.round(100*(state.xp-ri.r.xp)/(ri.next.xp-ri.r.xp))+'%':'100%';$('missionCode').textContent='// OPÉRATION '+String(state.index+1).padStart(2,'0')+' / 03';$('missionTitle').textContent=m.name;$('missionBrief').textContent=m.brief;$('targetBadge').textContent='CIBLE : '+m.target;$('difficultyBadge').textContent='DIFFICULTÉ : 0'+(state.index+1)+'/03';$('scenarioBadge').textContent=m.tag.toUpperCase();$('nodeName').textContent=m.node;$('nodeIp').textContent=m.target;$('intelText').textContent=m.goal;$('traceValue').textContent=String(s.trace).padStart(2,'0')+' / 100';$('traceFill').style.width=s.trace+'%';$('traceDesc').textContent=s.trace<35?'Bruit faible. Progression discrète.':s.trace<70?'Activité détectable. Reste méthodique.':'Alerte élevée. Limite les actions inutiles.';$('networkStatus').textContent=s.scanned?'HÔTE IDENTIFIÉ':'NON CARTOGRAPHIÉ';$('targetNode').setAttribute('stroke',s.scanned?'#74f7bb':'#648598');$('targetNodeIcon').setAttribute('stroke',s.scanned?'#74f7bb':'#7f9cad');$('connectionIndicator').textContent=s.connected?m.login+'@'+m.node:'SESSION LOCALE';$('prompt').textContent=pendingPassword?'password:':s.connected?m.login+'@'+m.node.toLowerCase()+':~$':'ghost@local:~$';$('commandInput').type=pendingPassword?'password':'text';$('commandInput').placeholder=pendingPassword?'Mot de passe (non affiché)':'Saisir une commande…';$('rewardXp').textContent='+'+m.xp;$('rewardCredits').textContent='+'+m.credits+' ₡';
+  const completed=checkSteps();$('tasks').replaceChildren();m.steps.forEach((task,i)=>{const row=document.createElement('div');row.className='task'+(completed[i]?' done':'');const box=document.createElement('span');box.className='task-check';box.textContent=completed[i]?'✓':'·';const label=document.createElement('span');label.textContent=task;row.append(box,label);$('tasks').append(row);});
+  const list=$('missionsList');list.replaceChildren();M.forEach((mm,i)=>{const unlocked=i===0||state.completed.includes(M[i-1].id);const done=state.completed.includes(mm.id);const b=document.createElement('button');b.type='button';b.className='mission-item'+(i===state.index?' active':'')+(done?' done':'');b.disabled=!unlocked;b.setAttribute('aria-label',mm.name+(done?' terminée':unlocked?' accessible':' verrouillée'));const n=document.createElement('span');n.className='mission-icon';n.textContent=done?'✓':unlocked?String(i+1).padStart(2,'0'):'⌁';const t=document.createElement('span');const label=document.createElement('div');label.className='mission-label';label.textContent=mm.name;const sub=document.createElement('div');sub.className='mission-meta';sub.textContent=done?'TERMINÉE':i===state.index?'EN COURS':unlocked?'DÉBLOQUÉE':'VERROUILLÉE';t.append(label,sub);b.append(n,t);b.onclick=()=>{if(i!==state.index)switchMission(i);else $('commandInput').focus();};list.append(b);});
+  const next=$('nextButton');next.hidden=!(state.completed.includes(m.id));next.textContent=state.index<M.length-1?'MISSION SUIVANTE →':'VOIR LE BILAN FINAL →';$('commandInput').focus({preventScroll:true});save();
+}
+function cost(n){let s=S();if(s.completed)return false;s.trace=Math.min(100,s.trace+n);if(s.trace>=100){state.failures++;emit('[ALERTE] Seuil de détection dépassé. La session a été isolée.','error');emit('[SIMULATION] Opération réinitialisée ; tes récompenses précédentes restent acquises.','warn');state.session=newSession();pendingPassword=null;update();emit('Reprends avec « nmap '+current().target+' ».','dim');return true;}return false;}
+function allowHost(ip){if(ip!==current().target){emit('HÔTE HORS PÉRIMÈTRE — Ce simulateur ne répond qu’à '+current().target+'.','error');return false;}return true;}
+function ensureScan(){if(!S().scanned){emit('Commence par identifier les services avec « nmap '+current().target+' ».','warn');return false;}return true;}
+function doNmap(parts){if(S().connected){emit('Depuis la machine distante, tape « exit » avant de scanner.','warn');return;}const ip=parts.filter(x=>!x.startsWith('-')).pop();if(!ip){emit('Usage : nmap '+current().target+'  (option -sV facultative)','warn');return;}if(!allowHost(ip))return;if(cost(parts.includes('-sV')?18:14))return;S().scanned=true;emit(`Starting Nmap 7.94 (virtual scan) at ${new Date().toISOString().slice(11,19)} UTC`);emit(`Nmap scan report for ${current().node.toLowerCase()}.range (${ip})`,'info');emit('Host is up (0.0032s latency).');emit('PORT      STATE SERVICE  VERSION');emit(current().ports,'good');emit('Nmap done: 1 IP address (1 host up) scanned.','dim');}
+function parseUrl(value){try{const url=new URL(value);if(!['http:','https:'].includes(url.protocol))return null;return {ip:url.hostname,path:url.pathname.replace(/\/$/,'')||'/',port:url.port};}catch{return null;}}
+function doCurl(arg){if(!arg){emit('Usage : curl http://'+current().target,'warn');return;}if(!ensureScan())return;const url=parseUrl(arg);if(!url){emit('Adresse incorrecte. Exemple : curl http://'+current().target,'error');return;}if(!allowHost(url.ip))return;if(cost(5))return;
+ const m=current(),s=S();const p=url.path;s.visited.push(p);emit('HTTP/1.1 200 OK  •  '+m.node+'  •  simulation','dim');
+ if(state.index===0){if(p==='/')emit('<title>HELIOS Gateway</title>\nPortail de service. Vérifiez robots.txt avant la revue.','info');else if(p==='/robots.txt')emit('User-agent: *\nDisallow: /archive/\n# Document de référence : /archive/ops-notes.txt','good');else if(p==='/archive'||p==='/archive/ops-notes.txt'){if(p==='/archive')emit('Index of /archive/\nops-notes.txt','info');else{emit('NOTE INTERNE — ne pas publier\nUtilisateur SSH d’audit : analyst\nMot de passe provisoire : orbit-1999\nConstat : archive exposée publiquement.','good');s.clue=true;}}else notFound(p);}
+ else if(state.index===1){if(p==='/'||p==='/status')emit('SPECTER diagnostics\nService de journaux : ACTIF\nDocumentation : /diagnostics','info');else if(p==='/diagnostics'){emit('Compte lecture seule : observer\nMot de passe temporaire : northwind-8\nFichier d’investigation : auth.log','good');s.clue=true;}else notFound(p);}
+ else {if(p==='/'||p==='/status')emit('BASTION Control\nMaintenance en cours. Note interne : /maintenance','info');else if(p==='/maintenance'){emit('Accès de maintenance : operator\nMot de passe temporaire : perimeter-6\nConsulter firewall.conf et change-request.txt','good');s.clue=true;}else notFound(p);}
+}
+function notFound(p){emit('HTTP/1.1 404 Not Found — '+p,'warn');}
+function doSsh(arg){const m=current(),s=S();if(s.connected){emit('Tu es déjà connecté. « exit » pour fermer la session.','warn');return;}if(!ensureScan())return;if(!arg||!arg.includes('@')){emit('Usage : ssh utilisateur@'+m.target,'warn');return;}const [user,ip]=arg.split('@');if(!allowHost(ip))return;if(cost(8))return;pendingPassword={user};emit(`Connecting to ${ip}:22 …`,'dim');emit('Authentification demandée pour « '+user+' ». Entre le mot de passe (saisie masquée).','info');}
+function doPassword(raw){const user=pendingPassword.user,pw=raw;pendingPassword=null;if(user===current().login&&pw===current().password){S().connected=true;emit('Authentification acceptée. Session SSH de simulation ouverte.','good');emit('Dernière connexion : session d’audit autorisée. Utilise « ls » pour les fichiers.','dim');}else{S().failedAuth++;emit('Permission denied (publickey,password).','error');cost(17);}}
+function fileContent(file){if(state.index===2&&file==='firewall.conf')return S().patched?'# Politique pare-feu après correction\nrule_4 = ALLOW tcp/22 from 10.14.0.0/24\ndefault = DENY':'# Politique pare-feu avant correction\nrule_4 = ALLOW tcp/22 from 0.0.0.0/0\ndefault = DENY';return current().files[file];}
+function files(){return [...Object.keys(current().files),...(state.index===2?['firewall.conf']:[])];}
+function requireSsh(){if(!S().connected){emit('Commande disponible après une connexion SSH. « ssh '+current().login+'@'+current().target+' ».','warn');return false;}return true;}
+function doCat(filename){if(!requireSsh())return;if(!filename){emit('Usage : cat nom-du-fichier','warn');return;}const file=filename.split('/').pop();const content=fileContent(file);if(content===undefined){emit('cat: '+filename+': fichier introuvable','error');return;}if(cost(3))return;S().filesRead.push(file);emit(content,'info');}
+function doGrep(term,file){if(!requireSsh())return;if(!term||!file){emit('Usage : grep motif nom-du-fichier','warn');return;}file=file.split('/').pop();const content=fileContent(file);if(content===undefined){emit('grep: '+file+': fichier introuvable','error');return;}if(cost(2))return;S().filesRead.push(file);const lines=content.split('\n').filter(l=>l.toLowerCase().includes(term.toLowerCase()));emit(lines.length?lines.join('\n'):'Aucune correspondance.',lines.length?'info':'dim');}
+function complete(){const m=current(),s=S();if(s.completed||state.completed.includes(m.id)){emit('Opération déjà validée. Tape « next ».','warn');return;}s.completed=true;state.completed.push(m.id);const earned=Math.max(0,m.xp-25*s.hints);const stealth=s.trace<=45?150:0;state.xp+=earned;state.credits+=m.credits+stealth;emit('══════════════════════════════════════════════════','good');emit('✓ OPÉRATION '+m.id+' TERMINÉE : '+m.name,'good');emit('+'+earned+' XP  |  +'+m.credits+' ₡'+(stealth?'  |  BONUS DISCRÉTION +150 ₡':''),'reward');emit('══════════════════════════════════════════════════','good');if(state.index<M.length-1)emit('Tape « next » ou clique « MISSION SUIVANTE » pour continuer.','info');else{emit('CAMPAGNE TERMINÉE — toutes les opérations validées.','good');setTimeout(showVictory,350);}update();}
+function doSubmit(raw,verb){const m=current(),s=S();if(state.completed.includes(m.id)){emit('Mission déjà terminée. Tape « next ».','warn');return;}if(state.index===0){if(verb!=='submit'){emit('Pour cette mission, utilise « submit <preuve> ».','warn');return;}if(!s.filesRead.includes('proof.txt')){emit('Lis la preuve avec « cat proof.txt » avant de la soumettre.','warn');return;}if(raw.toUpperCase()===m.flag.toUpperCase())complete();else emit('Preuve invalide. Vérifie la valeur dans proof.txt.','error');}
+ else if(state.index===1){if(verb!=='report'){emit('Pour cette mission, utilise « report <IP suspecte> ».','warn');return;}if(!s.filesRead.includes('auth.log')){emit('Consulte auth.log avant de transmettre ton rapport.','warn');return;}if(raw===m.flag)complete();else emit('Source non confirmée. Recoupe les échecs et la connexion réussie.','error');}
+ else emit('Cette mission se termine avec « harden ssh », puis « verify ».','warn');}
+function doHarden(arg){if(state.index!==2){emit('Durcissement disponible dans l’opération ZERO TRUST.','warn');return;}if(!requireSsh())return;if(arg!=='ssh'){emit('Usage : harden ssh','warn');return;}if(!S().filesRead.includes('firewall.conf')||!S().filesRead.includes('change-request.txt')){emit('Analyse d’abord firewall.conf et change-request.txt.','warn');return;}if(S().patched){emit('Règle déjà corrigée. Lance « verify ».','info');return;}if(cost(4))return;S().patched=true;emit('[CHG-1103] Règle simulée mise à jour : ALLOW tcp/22 from 10.14.0.0/24','good');emit('[CONTRÔLE] Accès SSH public désormais bloqué dans le simulateur. Lance « verify ».','info');}
+function doVerify(){if(state.index!==2){emit('Aucune vérification de durcissement sur cette mission.','warn');return;}if(!requireSsh())return;if(!S().patched){emit('[ÉCHEC] Port 22 encore accessible depuis 0.0.0.0/0. Corrige avec « harden ssh ».','error');return;}emit('[PASS] SSH restreint à 10.14.0.0/24','good');emit('[PASS] Politique par défaut : DENY','good');emit('[PASS] Changement CHG-1103 vérifié','good');complete();}
+function hint(){let s=S(),h;if(!s.scanned)h='Tape : nmap '+current().target;else if(state.index===0){h=!s.visited.includes('/robots.txt')?'Tape : curl http://10.14.0.10/robots.txt':!s.clue?'Tape : curl http://10.14.0.10/archive/ops-notes.txt':!s.connected?'Tape : ssh analyst@10.14.0.10  puis entre le mot de passe de la note':!s.filesRead.includes('proof.txt')?'Tape : cat proof.txt':'Tape : submit GP{HELIOS-AUDIT-07}';}
+ else if(state.index===1){h=!s.visited.includes('/diagnostics')?'Tape : curl http://10.14.0.24:8080/diagnostics':!s.connected?'Tape : ssh observer@10.14.0.24  puis entre le mot de passe indiqué':!s.filesRead.includes('auth.log')?'Tape : cat auth.log':'Repère l’IP associée aux échecs multiples et à la réussite, puis tape : report <IP>';}
+ else{h=!s.visited.includes('/maintenance')?'Tape : curl https://10.14.0.55/maintenance':!s.connected?'Tape : ssh operator@10.14.0.55  puis entre le mot de passe indiqué':!s.filesRead.includes('firewall.conf')?'Tape : cat firewall.conf':!s.filesRead.includes('change-request.txt')?'Tape : cat change-request.txt':!s.patched?'Tape : harden ssh':'Tape : verify';}
+ if(s.completed){emit('La mission est achevée : next','good');return;}s.hints++;emit('[ASSISTANCE '+s.hints+'] '+h,'warn');emit('Chaque utilisation de hint retire 25 XP à la récompense de cette mission.','dim');}
+function showHelp(){emit('┌── COMMANDES DU CYBER RANGE ──────────────────────────','info');emit('│ help               Manuel des commandes');emit('│ brief / mission    Lire le dossier opérationnel');emit('│ status             État du réseau, progression et score');emit('│ nmap [-sV] <IP>    Simuler une découverte de services');emit('│ curl <URL>         Lire une ressource HTTP fictive');emit('│ ssh user@IP        Ouvrir une session SSH simulée');emit('│ ls                 Lister les fichiers du serveur');emit('│ cat <fichier>      Lire un fichier distant fictif');emit('│ grep <mot> <file>  Filtrer le contenu d’un journal');emit('│ whoami / pwd       Identité / dossier courant');emit('│ exit               Quitter le serveur distant');emit('│ submit <preuve>    Remettre une preuve d’audit (mission 1)');emit('│ report <IP>        Soumettre une analyse (mission 2)');emit('│ harden ssh         Appliquer le correctif simulé (mission 3)');emit('│ verify             Vérifier le correctif (mission 3)');emit('│ hint               Obtenir une aide (-25 XP)');emit('│ next               Passer à la prochaine mission');emit('│ history / clear    Historique / vider le terminal');emit('└────────────────────────────────────────────────────','info');emit('Les commandes agissent UNIQUEMENT sur un réseau virtuel intégré au jeu.','dim');}
+function switchMission(i){if(i<0||i>=M.length||i>0&&!state.completed.includes(M[i-1].id)){emit('Mission verrouillée.','warn');return;}if(i===state.index)return;state.index=i;state.session=newSession();pendingPassword=null;$('output').replaceChildren();update();intro();}
+function showVictory(){const root=$('modalRoot');if(root.children.length)return;const cover=document.createElement('div');cover.className='modal-cover';const modal=document.createElement('div');modal.className='modal';modal.innerHTML='<div class="symbol">◆</div><div class="eyebrow">CAMPAGNE ACHEVÉE</div><h2>GHOST ELITE</h2><p>Tu as terminé les trois opérations : audit Web, analyse de journaux et durcissement d’un bastion. Toutes les actions sont restées confinées à une simulation locale.</p><p id="finalStats" style="color:var(--green);font:14px var(--mono)"></p><button class="cta" id="closeVictory" type="button">RETOUR AU TERMINAL</button>';cover.append(modal);root.append(cover);$('finalStats').textContent=state.xp+' XP • '+state.credits+' ₡ • '+state.failures+' alerte(s)';$('closeVictory').onclick=()=>root.replaceChildren();}
+function doNext(){if(!state.completed.includes(current().id)){emit('Termine la mission en cours avant de continuer.','warn');return;}if(state.index===M.length-1){showVictory();return;}switchMission(state.index+1);}
+function doCommand(raw){if(pendingPassword){emit('••••••••','cmd');doPassword(raw);update();return;}if(!raw.trim())return;emit(raw,'cmd');history.push(raw);history=history.slice(-100);historyCursor=history.length;const tokens=raw.trim().split(/\s+/),verb=tokens[0].toLowerCase(),args=tokens.slice(1),arg=args.join(' '),s=S();
+ switch(verb){
+ case 'help':case '?':showHelp();break;
+ case 'brief':case 'mission':emit('['+current().id+'] '+current().name+' — '+current().tag,'info');emit(current().brief);emit('OBJECTIF : '+current().goal,'good');emit('PÉRIMÈTRE AUTORISÉ : '+current().target,'dim');break;
+ case 'status':emit('Agent : GHOST_01  |  '+state.xp+' XP  |  '+state.credits+' ₡','info');emit('Mission '+current().id+' : '+(s.completed?'TERMINÉE':'EN COURS')+' | Trace '+s.trace+'/100 | Étapes '+checkSteps().filter(Boolean).length+'/4');emit('Hôte : '+(s.scanned?current().node+' détecté':'inconnu')+' | SSH : '+(s.connected?'connecté':'déconnecté'));break;
+ case 'nmap':doNmap(args);break;
+ case 'curl':doCurl(arg);break;
+ case 'ssh':doSsh(arg);break;
+ case 'ls':if(requireSsh()){emit(files().map(f=>'-rw-r--r--  1 '+current().login+'  '+f).join('\n')||'Dossier vide','info');}break;
+ case 'cat':doCat(arg);break;
+ case 'grep':doGrep(args[0],args[1]);break;
+ case 'whoami':emit(s.connected?current().login:'ghost');break;
+ case 'pwd':emit(s.connected?'/home/'+current().login:'/opt/operations');break;
+ case 'exit':if(s.connected){s.connected=false;emit('Connection to '+current().target+' closed.','dim');}else emit('Tu es déjà sur ta console locale.','dim');break;
+ case 'submit':case 'report':doSubmit(arg,verb);break;
+ case 'harden':doHarden(arg);break;
+ case 'verify':doVerify();break;
+ case 'hint':hint();break;
+ case 'next':doNext();break;
+ case 'history':emit(history.map((h,i)=>(i+1)+'  '+h).join('\n')||'Historique vide.','dim');break;
+ case 'clear':$('output').replaceChildren();break;
+ default:emit('Commande inconnue : '+verb+'. Tape « help ».','error');break;
+ }
+ update();}
+$('terminalForm').addEventListener('submit',ev=>{ev.preventDefault();const input=$('commandInput'),raw=input.value;input.value='';doCommand(raw);});
+$('commandInput').addEventListener('keydown',ev=>{if(pendingPassword)return;if(ev.key==='ArrowUp'){ev.preventDefault();historyCursor=Math.max(0,historyCursor-1);$('commandInput').value=history[historyCursor]||'';}else if(ev.key==='ArrowDown'){ev.preventDefault();historyCursor=Math.min(history.length,historyCursor+1);$('commandInput').value=history[historyCursor]||'';}else if(ev.key==='Tab'){const val=$('commandInput').value.trim();if(!val.includes(' ')){const options=['help','brief','mission','status','nmap','curl','ssh','ls','cat','grep','whoami','pwd','exit','submit','report','harden','verify','hint','next','history','clear'];const matches=options.filter(c=>c.startsWith(val));if(matches.length===1){ev.preventDefault();$('commandInput').value=matches[0]+' ';}}}});
+document.querySelectorAll('.quick').forEach(b=>b.addEventListener('click',()=>{let c=b.dataset.command;if(c==='scan')c='nmap '+current().target;if(pendingPassword){emit('Termine d’abord la saisie du mot de passe.','warn');return;}doCommand(c);}));
+$('helpButton').addEventListener('click',()=>doCommand('help'));
+$('nextButton').addEventListener('click',doNext);
+$('resetButton').addEventListener('click',()=>{if(!confirm('Effacer ton expérience, tes crédits et toutes tes missions pour recommencer ?'))return;state=defaults();history=[];historyCursor=0;pendingPassword=null;$('output').replaceChildren();$('modalRoot').replaceChildren();update();intro();});
+function clock(){const d=new Date();$('clock').textContent=d.toISOString().slice(11,19)+' UTC';}clock();setInterval(clock,1000);
+update();intro(state.xp>0||S().scanned||S().connected);
+})();
+</script>
+</body>
+</html>
